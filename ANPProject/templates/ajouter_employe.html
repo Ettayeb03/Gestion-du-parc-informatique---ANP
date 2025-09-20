@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <h2>Ajouter un employé</h2>
+    <form method="POST">
+        <label>Nom :
+            <input type="text" name="nom" required>
+        </label>
+        <label>Prénom :
+            <input type="text" name="prenom" required>
+        </label>
+        <label>Service :
+              <select name="service" required>
+                <option value="">-- Choisir un service --</option>
+                {% for s in services %}
+                  <option value="{{ s.id }}">{{ s.nom }}</option>
+                {% endfor %}
+              </select>
+        </label>
+        <label>Matricule :
+          <input type="text" name="matricule" required>
+        </label>
+        <label>Date de recrutement :
+          <input type="date" name="date_recrutement" required>
+        </label>
+        <label>Poste :
+          <input type="text" name="poste" required>
+        </label>
+        <label>Email :
+          <input type="email" name="email" required>
+        </label>
+
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+    </form>
+    <a href="{{ url_for('liste_employes') }}" class="btn-link">← Retour à la liste</a>
+
+</div>
+{% endblock %}

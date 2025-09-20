@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <h2>Modifier employé ID {{ employe.id }}</h2>
+    <form method="POST">
+        <label>Nom :
+            <input type="text" name="nom" value="{{ employe.nom }}" required>
+        </label>
+        <label>Prénom :
+            <input type="text" name="prenom" value="{{ employe.prenom }}" required>
+        </label>
+        <label>Service :
+            <select name="service" class="form-control">
+                <option value="">-- Aucun service --</option>
+                {% for service in services %}
+                    <option value="{{ service.id }}"
+                            {% if employe.service and service.id == employe.service.id %}selected{% endif %}>
+                        {{ service.nom }}
+                    </option>
+                {% endfor %}
+            </select>
+        </label>
+        <label>Matricule :
+            <input type="text" name="matricule" value="{{ employe.matricule }}" required>
+        </label>
+        <label>Date de recrutement :
+            <input type="date" name="date_recrutement" value="{{ employe.date_recrutement }}" required>
+        </label>
+        <label>Poste :
+            <input type="text" name="poste" value="{{ employe.poste }}" required>
+        </label>
+        <label>Email :
+            <input type="email" name="email" value="{{ employe.email }}" required>
+        </label>
+
+        <button type="submit" class="btn btn-primary">Modifier</button>
+    </form>
+    <a href="{{ url_for('liste_employes') }}" class="btn-link">← Retour à la liste</a>
+</div>
+{% endblock %}

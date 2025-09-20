@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Modifier l'utilisateur {{ user.username }}</h2>
+<form method="post">
+    <label>Nom d'utilisateur</label><br>
+    <input type="text" name="username" value="{{ user.username }}" required><br><br>
+
+    <label>Mot de passe (laisser vide pour ne pas changer)</label><br>
+    <input type="password" name="password"><br><br>
+
+    <label>Rôle</label><br>
+    <select name="role" required>
+        <option value="user" {% if user.role == 'user' %}selected{% endif %}>Utilisateur</option>
+        <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Administrateur</option>
+    </select><br><br>
+
+    <button type="submit" class="btn btn-primary">Modifier</button>
+    <a href="{{ url_for('admin_utilisateurs') }}" class="btn btn-secondary">Annuler</a>
+</form>
+{% endblock %}

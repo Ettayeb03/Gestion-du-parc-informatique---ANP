@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="detail-card">
+    <div class="detail-header">
+        <h2>
+            <i class="fas fa-laptop"></i> Détail du Matériel
+            <span class="status-badge status-{{ materiel.etat|lower|replace(' ', '-') }}">
+                {{ materiel.etat }}
+            </span>
+        </h2>
+        <a href="{{ url_for('liste_materiels') }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+
+    <div class="detail-grid">
+        <div class="detail-section">
+            <h3><i class="fas fa-info-circle"></i> Informations générales</h3>
+            <div class="detail-item">
+                <span class="detail-label">Nom</span>
+                <span class="detail-value">{{ materiel.nom }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Référence</span>
+                <span class="detail-value">{{ materiel.reference }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">N° de série</span>
+                <span class="detail-value">{{ materiel.numero_serie or '-' }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Code immobilisation</span>
+                <span class="detail-value">{{ materiel.code_immobilisation or '-' }}</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3><i class="fas fa-cog"></i> Caractéristiques</h3>
+            <div class="detail-item">
+                <span class="detail-label">Type</span>
+                <span class="detail-value">{{ materiel.type }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Date d'achat</span>
+                <span class="detail-value">{{ materiel.date_achat.strftime('%d/%m/%Y') }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Remarque</span>
+                <span class="detail-value">{{ materiel.remarque or 'Aucune remarque' }}</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h3><i class="fas fa-user-tie"></i> Affectation</h3>
+            {% if materiel.employe_id %}
+            <div class="detail-item">
+                <span class="detail-label">Employé</span>
+                <span class="detail-value">{{ materiel.employe_prenom }} {{ materiel.employe_nom }}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Service</span>
+                <span class="detail-value">
+                    {% if materiel.employe_service_nom %}
+                        {{ materiel.employe_service_nom }} (via employé)
+                    {% else %}
+                        {{ materiel.service_nom or 'Non spécifié' }}
+                    {% endif %}
+                </span>
+            </div>
+            {% else %}
+            <div class="detail-item">
+                <span class="detail-label">Service</span>
+                <span class="detail-value">{{ materiel.service_nom or 'Non affecté' }}</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<style>
+/* Carte de détail */
+.detail-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.detail-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--dark);
+}
+
+/* Grille d'informations */
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.detail-section {
+    background-color: var(--light);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+}
+
+.detail-section h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.1rem;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.detail-item {
+    display: flex;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.detail-label {
+    font-weight: 500;
+    color: var(--dark);
+    min-width: 150px;
+}
+
+.detail-value {
+    color: var(--gray);
+    flex-grow: 1;
+    text-align: right;
+}
+
+/* Section entretiens */
+.entretiens-section {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 1.5rem;
+}
+
+.entretiens-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.entretiens-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.entretiens-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.entretien-item {
+    display: flex;
+    align-items: center;
+    background-color: var(--light);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    transition: var(--transition);
+}
+
+.entretien-item:hover {
+    background-color: var(--primary-light);
+}
+
+.entretien-date {
+    min-width: 100px;
+    font-weight: 500;
+    color: var(--dark);
+}
+
+.entretien-desc {
+    flex-grow: 1;
+    padding: 0 1rem;
+}
+
+.entretien-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* État vide */
+.empty-state {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: var(--gray);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.empty-state i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--light-gray);
+}
+
+.empty-state p {
+    margin: 0;
+}
+
+/* Badges d'état */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-disponible { background-color: #d4edda; color: #155724; }
+.status-en-service { background-color: #cce5ff; color: #004085; }
+.status-en-reparation { background-color: #fff3cd; color: #856404; }
+.status-hors-service { background-color: #f8d7da; color: #721c24; }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .detail-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .entretien-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .entretien-date {
+        margin-bottom: 0.5rem;
+    }
+
+    .entretien-actions {
+        align-self: flex-end;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,922 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="materiel-container">
+    <!-- En-tête -->
+    <div class="header-section">
+        <h1 class="page-title">
+            <i class="fas fa-laptop-code"></i> Gestion du Parc Matériel
+        </h1>
+
+        <div class="action-buttons">
+            <a href="{{ url_for('ajouter_materiel') }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nouveau Matériel
+            </a>
+
+            <div class="btn-group">
+                <button class="btn btn-secondary" id="importBtn">
+                    <i class="fas fa-file-import"></i> Importer
+                </button>
+                <a href="{{ url_for('export_materiels') }}" class="btn btn-secondary">
+                    <i class="fas fa-file-export"></i> Exporter
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal d'importation -->
+    <div id="importModal" class="modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-import"></i> Importer des matériels</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('importer_materiels') }}" method="post" enctype="multipart/form-data">
+                    <div class="file-upload-box">
+                        <input type="file" name="file" id="fileInput" required accept=".xlsx,.xls">
+                        <label for="fileInput" class="file-upload-label">
+                            <div class="file-upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div class="file-upload-text">
+                                <p>Glissez-déposez votre fichier ici</p>
+                                <span>ou cliquez pour parcourir</span>
+                            </div>
+                        </label>
+                        <div id="fileName" class="file-name">Aucun fichier sélectionné</div>
+                    </div>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Valider l'import
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres de recherche -->
+    <div class="filter-card">
+        <div class="filter-header" id="filterToggle">
+            <i class="fas fa-sliders-h"></i> Filtres avancés
+            <i class="fas fa-chevron-down toggle-icon"></i>
+        </div>
+
+        <div class="filter-body" id="filterContent">
+            <form id="filterForm" method="get" action="{{ url_for('liste_materiels') }}">
+                <div class="filter-grid">
+                    <!-- Colonne 1 -->
+                    <div class="filter-column">
+                        <div class="form-group">
+                            <label for="nom"><i class="fas fa-tag"></i> Nom</label>
+                            <input type="text" id="nom" name="nom" placeholder="PC Portable HP..."
+                                   value="{{ request.args.get('nom', '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="reference"><i class="fas fa-barcode"></i> Référence</label>
+                            <input type="text" id="reference" name="reference" placeholder="HP-ELITEBOOK..."
+                                   value="{{ request.args.get('reference', '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="numero_serie"><i class="fas fa-hashtag"></i> N° Série</label>
+                            <input type="text" id="numero_serie" name="numero_serie" placeholder="1234ABCD..."
+                                   value="{{ request.args.get('numero_serie', '') }}">
+                        </div>
+                    </div>
+
+                    <!-- Colonne 2 -->
+                    <div class="filter-column">
+                        <div class="form-group">
+                            <label for="code_immobilisation"><i class="fas fa-qrcode"></i> Code Immobilisation</label>
+                            <input type="text" id="code_immobilisation" name="code_immobilisation"
+                                   placeholder="INV-2023-001..." value="{{ request.args.get('code_immobilisation', '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="type"><i class="fas fa-tools"></i> Type</label>
+                            <input type="text" id="type" name="type" placeholder="Ordinateur, Imprimante..."
+                                   value="{{ request.args.get('type', '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="etat"><i class="fas fa-heartbeat"></i> État</label>
+                            <select id="etat" name="etat">
+                                <option value="">Tous états</option>
+                                <option value="fonctionnel" {% if request.args.get('etat') == 'fonctionnel' %}selected{% endif %}>Fonctionnel</option>
+                                <option value="en maintenance" {% if request.args.get('etat') == 'en maintenance' %}selected{% endif %}>En maintenance</option>
+                                <option value="en panne" {% if request.args.get('etat') == 'en panne' %}selected{% endif %}>En panne</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Colonne 3 -->
+                    <div class="filter-column">
+                        <div class="form-group">
+                            <label for="employe"><i class="fas fa-user"></i> Employé</label>
+                            <input type="text" id="employe" name="employe" placeholder="Nom employé..."
+                                   value="{{ request.args.get('employe', '') }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="service"><i class="fas fa-building"></i> Service</label>
+                            <select id="service" name="service">
+                                <option value="">Tous services</option>
+                                {% for service in services %}
+                                <option value="{{ service.id }}" {% if request.args.get('service') == service.id|string %}selected{% endif %}>
+                                    {{ service.nom }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <a href="{{ url_for('liste_materiels') }}" class="btn btn-outline">
+                        <i class="fas fa-undo"></i> Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tableau des matériels -->
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th class="sortable"><i class="fas fa-tag"></i> Nom</th>
+                        <th class="sortable"><i class="fas fa-barcode"></i> Référence</th>
+                        <th><i class="fas fa-hashtag"></i> N° Série</th>
+                        <th><i class="fas fa-qrcode"></i> Code Immo.</th>
+                        <th class="sortable"><i class="fas fa-tools"></i> Type</th>
+                        <th class="sortable"><i class="fas fa-heartbeat"></i> État</th>
+                        <th><i class="fas fa-comment-alt"></i> Remarque</th>
+                        <th class="sortable"><i class="fas fa-calendar-alt"></i> Date Achat</th>
+                        <th><i class="fas fa-building"></i> Service</th>
+                        <th><i class="fas fa-user"></i> Employé</th>
+                        <th><i class="fas fa-wrench"></i> Entretiens</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in materiels %}
+                    <tr>
+                        <td>{{ m.nom or '-' }}</td>
+                        <td>{{ m.reference or '-' }}</td>
+                        <td>{{ m.numero_serie or '-' }}</td>
+                        <td>{{ m.code_immobilisation or '-' }}</td>
+                        <td>{{ m.type or '-' }}</td>
+                        <td>
+                            <span class="status-badge status-{{ m.etat|lower|replace(' ', '-') }}">
+                                <i class="status-icon"></i>{{ m.etat }}
+                            </span>
+                        </td>
+                        <td class="remarks-cell" title="{{ m.remarque if m.remarque }}">
+                            {{ m.remarque|truncate(30) if m.remarque else '-' }}
+                        </td>
+                        <td>
+                            {% if m.date_achat %}
+                                {{ m.date_achat.strftime('%d/%m/%Y') }}
+                            {% else %}
+                                Non spécifié
+                            {% endif %}
+                        </td>
+                        <td>{{ m.service_nom or '-' }}</td>
+                        <td>{{ m.employe_nom or '-' }}</td>
+                        <td>
+                            <span class="badge-circle">{{ m.nombre_entretiens }}</span>
+                        </td>
+                        <td class="actions-cell">
+                            <div class="action-buttons">
+                                <a href="{{ url_for('detail_materiel', materiel_id=m.id) }}" class="btn-action btn-view" title="Détails">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{{ url_for('modifier_materiel', materiel_id=m.id) }}" class="btn-action btn-edit" title="Modifier">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{{ url_for('supprimer_materiel', materiel_id=m.id) }}"
+                                   class="btn-action btn-delete"
+                                   title="Supprimer"
+                                   onclick="return confirm('Confirmer la suppression de ce matériel ?');">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="12">
+                            <div class="empty-state">
+                                <div class="empty-icon">
+                                    <i class="fas fa-box-open"></i>
+                                </div>
+                                <h4>Aucun matériel trouvé</h4>
+                                <p>Essayez de modifier vos critères de recherche ou ajoutez un nouveau matériel</p>
+                                <a href="{{ url_for('ajouter_materiel') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Ajouter un matériel
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination corrigée -->
+    {% if pagination %}
+    <div class="pagination-wrapper">
+        <div class="pagination">
+            {% set request_args = request.args.to_dict() %}
+
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('liste_materiels', page=pagination.prev_num, **request_args) }}" class="page-item">
+                <i class="fas fa-chevron-left"></i>
+            </a>
+            {% endif %}
+
+            {% for page in pagination.iter_pages() %}
+                {% if page %}
+                    <a href="{{ url_for('liste_materiels', page=page, **request_args) }}"
+                       class="page-item {% if page == pagination.page %}active{% endif %}">
+                        {{ page }}
+                    </a>
+                {% else %}
+                    <span class="page-ellipsis">...</span>
+                {% endif %}
+            {% endfor %}
+
+            {% if pagination.has_next %}
+            <a href="{{ url_for('liste_materiels', page=pagination.next_num, **request_args) }}" class="page-item">
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* Variables */
+:root {
+    --primary: #4361ee;
+    --primary-light: #e6f0ff;
+    --secondary: #3f37c9;
+    --success: #4cc9f0;
+    --danger: #f72585;
+    --warning: #f8961e;
+    --info: #4895ef;
+    --dark: #212529;
+    --light: #f8f9fa;
+    --gray: #6c757d;
+    --light-gray: #e9ecef;
+    --border-color: #dee2e6;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
+}
+
+/* Base */
+.materiel-container {
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 2rem;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    color: var(--dark);
+}
+
+/* En-tête */
+.header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.page-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.page-title i {
+    color: var(--primary);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.btn-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Boutons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    text-decoration: none;
+}
+
+.btn i {
+    font-size: 0.9em;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: var(--secondary);
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow);
+}
+
+.btn-secondary {
+    background-color: white;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+}
+
+.btn-secondary:hover {
+    background-color: var(--primary-light);
+    transform: translateY(-2px);
+}
+
+.btn-success {
+    background-color: var(--success);
+    color: white;
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: var(--gray);
+    border: 1px solid var(--border-color);
+}
+
+.btn-outline:hover {
+    background-color: var(--light-gray);
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(3px);
+}
+
+.modal-card {
+    background-color: white;
+    margin: 5% auto;
+    width: 90%;
+    max-width: 600px;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: modalFadeIn 0.3s;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    padding: 1.25rem 1.5rem;
+    background-color: var(--primary);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.close {
+    font-size: 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.close:hover {
+    color: var(--light);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+/* Upload de fichier */
+.file-upload-box {
+    margin-bottom: 1.5rem;
+}
+
+.file-upload-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    border: 2px dashed var(--border-color);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: center;
+}
+
+.file-upload-label:hover {
+    border-color: var(--primary);
+    background-color: var(--primary-light);
+}
+
+.file-upload-icon {
+    font-size: 2rem;
+    color: var(--primary);
+    margin-bottom: 0.75rem;
+}
+
+.file-upload-text p {
+    margin: 0;
+    font-weight: 500;
+    color: var(--dark);
+}
+
+.file-upload-text span {
+    font-size: 0.875rem;
+    color: var(--gray);
+}
+
+.file-name {
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--gray);
+    text-align: center;
+}
+
+/* Filtres */
+.filter-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+
+.filter-header {
+    padding: 1rem 1.5rem;
+    background-color: var(--light);
+    color: var(--dark);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.filter-header:hover {
+    background-color: var(--light-gray);
+}
+
+.filter-header i {
+    margin-right: 0.75rem;
+    color: var(--primary);
+}
+
+.toggle-icon {
+    transition: transform 0.3s ease;
+    color: var(--gray);
+}
+
+.filter-body {
+    padding: 1.5rem;
+    border-top: 1px solid var(--light-gray);
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.filter-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.form-group {
+    margin-bottom: 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.form-group label i {
+    color: var(--primary);
+    font-size: 0.9em;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.625rem 0.875rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    transition: var(--transition);
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+}
+
+.filter-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Tableau */
+.table-card {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    overflow: hidden;
+}
+
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.data-table th {
+    background-color: var(--light);
+    color: var(--dark);
+    font-weight: 600;
+    text-align: left;
+    padding: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.data-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--light-gray);
+    vertical-align: middle;
+}
+
+.data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.data-table tr:hover td {
+    background-color: var(--primary-light);
+}
+
+.sortable {
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.sortable:hover {
+    color: var(--primary);
+}
+
+/* Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.status-icon {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.status-fonctionnel {
+    background-color: rgba(76, 201, 240, 0.1);
+    color: #4cc9f0;
+}
+
+.status-fonctionnel .status-icon {
+    background-color: #4cc9f0;
+}
+
+.status-en-maintenance {
+    background-color: rgba(248, 150, 30, 0.1);
+    color: #f8961e;
+}
+
+.status-en-maintenance .status-icon {
+    background-color: #f8961e;
+}
+
+.status-en-panne {
+    background-color: rgba(247, 37, 133, 0.1);
+    color: #f72585;
+}
+
+.status-en-panne .status-icon {
+    background-color: #f72585;
+}
+
+.badge-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--light-gray);
+    color: var(--dark);
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Cellules spéciales */
+.remarks-cell {
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.actions-cell {
+    white-space: nowrap;
+}
+
+/* Boutons d'action */
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-action {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    transition: var(--transition);
+    border: none;
+    font-size: 0.875rem;
+}
+
+.btn-view {
+    background-color: var(--info);
+}
+
+.btn-edit {
+    background-color: var(--warning);
+}
+
+.btn-delete {
+    background-color: var(--danger);
+}
+
+.btn-action:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* État vide */
+.empty-state {
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.empty-icon {
+    font-size: 3rem;
+    color: var(--light-gray);
+    margin-bottom: 1rem;
+}
+
+.empty-state h4 {
+    margin: 0 0 0.5rem;
+    color: var(--dark);
+}
+
+.empty-state p {
+    color: var(--gray);
+    margin-bottom: 1.5rem;
+}
+
+/* Pagination */
+.pagination-wrapper {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: center;
+}
+
+.pagination {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.page-item {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: white;
+    color: var(--dark);
+    text-decoration: none;
+    border: 1px solid var(--border-color);
+    transition: var(--transition);
+}
+
+.page-item:hover {
+    background-color: var(--light-gray);
+}
+
+.page-item.active {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.page-ellipsis {
+    display: flex;
+    align-items: center;
+    padding: 0 0.5rem;
+    color: var(--gray);
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .materiel-container {
+        padding: 1.5rem;
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .header-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .action-buttons {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 0.75rem;
+    }
+
+    .remarks-cell {
+        max-width: 150px;
+    }
+}
+
+@media (max-width: 576px) {
+    .materiel-container {
+        padding: 1rem;
+    }
+
+    .modal-card {
+        width: 95%;
+        margin: 10% auto;
+    }
+
+    .data-table {
+        font-size: 0.8125rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 0.5rem;
+    }
+}
+</style>
+<!-- Scripts JavaScript -->
+<script>// Gestion modale
+const modal = document.getElementById("importModal");
+if (modal) {
+    const btn = document.getElementById("importBtn");
+    const span = modal.querySelector(".close");
+
+    if (btn) btn.onclick = () => modal.style.display = "block";
+    if (span) span.onclick = () => modal.style.display = "none";
+
+    window.onclick = (event) => {
+        if (event.target === modal) modal.style.display = "none";
+    };
+}
+
+// Gestion des filtres
+const filterForm = document.getElementById('filterForm');
+if (filterForm) {
+    const filterToggle = document.getElementById('filterToggle');
+    const filterContent = document.getElementById('filterContent');
+
+    if (filterToggle && filterContent) {
+        filterToggle.addEventListener('click', () => {
+            filterContent.style.display = filterContent.style.display === 'none' ? 'block' : 'none';
+            const icon = filterToggle.querySelector('.toggle-icon');
+            if (icon) {
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+            }
+        });
+    }
+
+    // Filtrage automatique après 500ms d'inactivité
+    let filterTimeout;
+    const inputs = filterForm.querySelectorAll('input, select');
+
+    inputs.forEach(input => {
+        input.addEventListener('input', () => {
+            clearTimeout(filterTimeout);
+            filterTimeout = setTimeout(() => filterForm.submit(), 500);
+        });
+
+        input.addEventListener('change', () => filterForm.submit());
+    });
+}
+
+// Affichage du nom de fichier
+const fileInput = document.getElementById("fileInput");
+if (fileInput) {
+    fileInput.addEventListener('change', function() {
+        const fileName = document.getElementById("fileName");
+        if (fileName) {
+            fileName.textContent = this.files[0]?.name || "Aucun fichier sélectionné";
+        }
+    });
+}</script>
+{% endblock %}

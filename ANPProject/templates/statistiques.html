@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<div class="container my-4">
+    <h2 class="mb-4">📊 Tableau de bord - Statistiques</h2>
+
+    <!-- Statistiques principales -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <div class="card border-primary shadow-sm">
+                <div class="card-body text-center text-primary">
+                    <h4 class="card-title">-Total employés: {{ total_employes }}</h4>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-success shadow-sm">
+                <div class="card-body text-center text-success">
+                    <h4 class="card-title">-Total matériels: {{ total_materiels }}</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light fw-semibold">
+                    Répartition par état
+                </div>
+                <div class="card-body">
+                    <canvas id="etatChart" ></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light fw-semibold">
+                    Répartition par service
+                </div>
+                <div class="card-body">
+                    <canvas id="serviceChart" ></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const etatData = {
+        labels: {{ etats | map(attribute='etat') | list | tojson }},
+        datasets: [{
+            label: 'Matériels par état',
+            data: {{ etats | map(attribute='count') | list | tojson }},
+            backgroundColor: ['#28a745', '#dc3545', '#ffc107'],
+            borderWidth: 1
+        }]
+    };
+
+    const serviceData = {
+        labels: {{ par_service | map(attribute='service') | list | tojson }},
+        datasets: [{
+            label: 'Matériels par service',
+            data: {{ par_service | map(attribute='count') | list | tojson }},
+            backgroundColor: '#007bff',
+            borderWidth: 1
+        }]
+    };
+
+    new Chart(document.getElementById('etatChart'), {
+        type: 'pie',
+        data: etatData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    new Chart(document.getElementById('serviceChart'), {
+        type: 'bar',
+        data: serviceData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        precision: 0
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

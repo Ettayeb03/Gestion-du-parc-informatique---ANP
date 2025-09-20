@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>ANP - Gestion</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/LogoANP.png') }}">
+</head>
+<body class="dashboard-page">
+    <div class="sidebar">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img src="{{ url_for('static', filename='images/LogoANP.png') }}" alt="Logo ANP" class="logo" width="100" height="100">
+        </div>
+        <h2>ANP Admin</h2>
+        <p>Bonjour {{ nom }}</p>
+        <p id="datetime"></p>
+        <ul>
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/accueil.png') }}" width="20" height="20" alt="Accueil">
+                    <a href="{{ url_for('accueil') }}">Accueil</a>
+                </div>
+            </li>
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/materiel.png') }}" width="20" height="20" alt="Matériels">
+                    <a href="{{ url_for('liste_materiels') }}">Matériels</a>
+                </div>
+            </li>
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/employee.png') }}" width="20" height="20" alt="Employés">
+                    <a href="{{ url_for('liste_employes') }}">Employés</a>
+                </div>
+            </li>
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/service.png') }}" width="20" height="20" alt="Services">
+                    <a href="/services">Sérvices</a>
+                </div>
+            </li>
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/historique.png') }}" width="20" height="20" alt="Historique">
+                    <a href="/historique">Historique</a>
+                </div>
+            </li>
+            <li>
+                <div class="menu-item">
+                    {% if session.get('role') == 'admin' %}
+                    <img src="{{ url_for('static', filename='images/gestion.png') }}" width="20" height="20" alt="Historique">
+                    <a href="{{ url_for('gestion_utilisateurs') }}" >Gérer les utilisateurs</a>
+                    {% endif %}
+                </div>
+            </li>
+            <li>
+                <div class="menu-item">
+                    {% if session.get('role') == 'admin' %}
+                    <img src="{{ url_for('static', filename='images/statistiques.png') }}" width="20" height="20" alt="Historique">
+                    <a href="{{ url_for('statistiques') }}" >Statistiques</a>
+                    {% endif %}
+                </div>
+            </li>
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/logout.png') }}" width="20" height="20" alt="Déconnexion">
+                    <a href="{{ url_for('logout') }}">Déconnexion</a>
+
+
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+<script>
+    function updateDateTime() {
+        const now = new Date();
+        const date = now.toLocaleDateString('fr-FR');
+        const time = now.toLocaleTimeString('fr-FR');
+        document.getElementById('datetime').innerText = `${date} - ${time}`;
+    }
+
+    setInterval(updateDateTime, 1000);
+    window.onload = updateDateTime;
+</script>
+
+</body>
+</html>

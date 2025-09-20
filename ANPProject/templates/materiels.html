@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    /* Styles généraux */
+    .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h1 {
+        color: #2c3e50;
+        font-weight: 600;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    h1 i {
+        color: #3498db;
+    }
+
+    /* Boutons */
+    .btn {
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .btn-primary {
+        background-color: #3498db;
+        color: white;
+        border: none;
+    }
+
+    .btn-primary:hover {
+        background-color: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .btn-secondary {
+        background-color: #95a5a6;
+        color: white;
+        border: none;
+    }
+
+    .btn-info {
+        background-color: #17a2b8;
+        color: white;
+    }
+
+    .btn-warning {
+        background-color: #f39c12;
+        color: white;
+    }
+
+    .btn-danger {
+        background-color: #e74c3c;
+        color: white;
+    }
+
+    .btn-sm {
+        padding: 5px 10px;
+        font-size: 14px;
+    }
+
+    /* Cartes */
+    .card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #eee;
+        padding: 15px 20px;
+        border-radius: 8px 8px 0 0 !important;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    /* Formulaire */
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 8px;
+        color: #34495e;
+    }
+
+    .form-control, .form-select {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        outline: none;
+    }
+
+    /* Tableau */
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .table th {
+        background-color: #f8f9fa;
+        color: #34495e;
+        font-weight: 600;
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 2px solid #eee;
+    }
+
+    .table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+        vertical-align: middle;
+    }
+
+    .table-hover tbody tr:hover {
+        background-color: #f5f9fd;
+    }
+
+    /* Badges */
+    .badge {
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .bg-success {
+        background-color: #2ecc71 !important;
+    }
+
+    .bg-warning {
+        background-color: #f39c12 !important;
+    }
+
+    .bg-danger {
+        background-color: #e74c3c !important;
+    }
+
+    .bg-secondary {
+        background-color: #95a5a6 !important;
+    }
+
+    /* Alertes */
+    .alert {
+        padding: 12px 15px;
+        border-radius: 4px;
+        margin-bottom: 0;
+    }
+
+    .alert-info {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .container {
+            padding: 15px;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .btn-group {
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+    }
+
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .table tbody tr {
+        animation: fadeIn 0.3s ease forwards;
+    }
+
+    .table tbody tr:nth-child(odd) {
+        animation-delay: 0.05s;
+    }
+
+    .table tbody tr:nth-child(even) {
+        animation-delay: 0.1s;
+    }
+
+    /* Filtres compacts */
+    .compact-filters .row {
+        margin-bottom: -15px;
+    }
+
+    .compact-filters [class*="col-"] {
+        padding-bottom: 15px;
+    }
+</style>
+
+<div class="container">
+    <h1 class="my-4">
+        <i class="fas fa-laptop"></i> Gestion du Parc Matériel
+    </h1>
+
+    <!-- Boutons d'action -->
+    <div class="mb-4">
+        <a href="{{ url_for('ajouter_materiel') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Ajouter un matériel
+        </a>
+    </div>
+
+    <!-- Filtres compacts -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Filtres</h5>
+        </div>
+        <div class="card-body compact-filters">
+            <form method="get" class="row">
+                <div class="col-md-4">
+                    <label class="form-label">Nom/Référence</label>
+                    <input type="text" name="nom" class="form-control" value="{{ request.args.get('nom', '') }}" placeholder="Nom ou référence">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Type/État</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <input type="text" name="type" class="form-control" value="{{ request.args.get('type', '') }}" placeholder="Type">
+                        </div>
+                        <div class="col-6">
+                            <select name="etat" class="form-select">
+                                <option value="">Tous états</option>
+                                <option value="fonctionnel" {% if request.args.get('etat') == 'fonctionnel' %}selected{% endif %}>Fonctionnel</option>
+                                <option value="en maintenance" {% if request.args.get('etat') == 'en maintenance' %}selected{% endif %}>En maintenance</option>
+                                <option value="en panne" {% if request.args.get('etat') == 'en panne' %}selected{% endif %}>En panne</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Employé/Service</label>
+                    <select name="employe" class="form-select" onchange="this.form.submit()">
+                        <option value="">Tous les employés</option>
+                        {% for employe in employes %}
+                        <option value="{{ employe.id }}"
+                                data-service="{{ employe.service_id }}"
+                                {% if request.args.get('employe') == employe.id|string %}selected{% endif %}>
+                            {{ employe.nom_complet }} ({{ employe.service_nom }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <input type="hidden" name="service" id="service-input" value="{{ request.args.get('service', '') }}">
+                </div>
+                <div class="col-12 mt-2">
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-search"></i> Filtrer
+                    </button>
+                    <a href="{{ url_for('liste_materiels') }}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-undo"></i> Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tableau des matériels -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag"></i> ID</th>
+                            <th><i class="fas fa-tag"></i> Nom</th>
+                            <th><i class="fas fa-barcode"></i> Référence</th>
+                            <th><i class="fas fa-tools"></i> Type</th>
+                            <th><i class="fas fa-heartbeat"></i> État</th>
+                            <th><i class="fas fa-building"></i> Service</th>
+                            <th><i class="fas fa-user"></i> Employé</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for m in materiels %}
+                        <tr>
+                            <td>{{ m.id }}</td>
+                            <td>{{ m.nom or '-' }}</td>
+                            <td>{{ m.reference or '-' }}</td>
+                            <td>{{ m.type or '-' }}</td>
+                            <td>
+                                <span class="badge
+                                    {% if m.etat == 'fonctionnel' %}bg-success
+                                    {% elif m.etat == 'en maintenance' %}bg-warning
+                                    {% elif m.etat == 'en panne' %}bg-danger
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ m.etat or '-' }}
+                                </span>
+                            </td>
+                            <td>{{ m.service_nom or '-' }}</td>
+                            <td>{{ m.employe_nom or '-' }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ url_for('detail_materiel', materiel_id=m.id) }}" class="btn btn-sm btn-info" title="Détails">
+                                        <i class="fas fa-eye">🔍</i>
+                                    </a>
+                                    <a href="{{ url_for('modifier_materiel', materiel_id=m.id) }}" class="btn btn-sm btn-warning" title="Modifier">
+                                        <i class="fas fa-edit">🖊️</i>
+                                    </a>
+                                    <a href="{{ url_for('supprimer_materiel', materiel_id=m.id) }}"
+                                       class="btn btn-sm btn-danger"
+                                       title="Supprimer"
+                                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce matériel ?');">
+                                        <i class="fas fa-trash">🗑️</i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Aucun matériel trouvé. Essayez de modifier vos critères de recherche.
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const employeSelect = document.getElementById('employe_id');
+    const serviceSelect = document.getElementById('service_id');
+    const currentService = "{{ current_employe_service }}";
+
+    // Synchronisation employé/service
+    if (employeSelect && serviceSelect) {
+        employeSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const serviceId = selectedOption.getAttribute('data-service');
+
+            if (serviceId) {
+                // Trouver l'option correspondante dans le select service
+                for (let option of serviceSelect.options) {
+                    if (option.value === serviceId) {
+                        option.selected = true;
+                        break;
+                    }
+                }
+            }
+        });
+
+        // Initialisation
+        if (currentService) {
+            for (let option of serviceSelect.options) {
+                if (option.value === currentService) {
+                    option.selected = true;
+                    break;
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

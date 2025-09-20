@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-page" onload="generateCalendar()">
+    <div class="sidebar">
+        <div style="text-align: center; margin-bottom: 20px;">
+            <img
+                src="{{ url_for('static', filename='images/LogoANP.png') }}"
+                alt="Logo ANP"
+                class="logo"
+                width="100"
+                height="100"
+            />
+        </div>
+        <h2>ANP Admin</h2>
+        <p>Bonjour {{ nom }}</p>
+        <p id="datetime"></p>
+        <ul>
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/accueil.png') }}" width="30" alt="Accueil">
+                    <a href="/accueil">Accueil</a>
+                </div>
+            </li>
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/materiel.png') }}" width="30" alt="Matériels">
+                    <a href="/materiels">Matériels</a>
+                </div>
+            </li>
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/employee.png') }}" width="30" alt="Employés">
+                    <a href="/employes">Employés</a>
+                </div>
+            </li>
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/service.png') }}" width="30" alt="Services">
+                    <a href="/services">Services</a>
+                </div>
+            </li>
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/historique.png') }}" width="20" height="20" alt="Historique">
+                    <a href="/historique">Historique</a>
+                </div>
+            </li>
+            {% if session.get('role') == 'admin' %}
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/gestion.png') }}" width="30" height="20" alt="Gestion utilisateurs">
+                    <a href="{{ url_for('gestion_utilisateurs') }}">Gérer les utilisateurs</a>
+                </div>
+            </li>
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/statistiques.png') }}" width="30" height="20" alt="Statistiques">
+                    <a href="{{ url_for('statistiques') }}">Statistiques</a>
+                </div>
+            </li>
+            {% endif %}
+            <li>
+                <div class="menu-item">
+                    <img src="{{ url_for('static', filename='images/logout.png') }}" width="30" alt="Déconnexion">
+                    <a href="/logout">Déconnexion</a>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <h1 class="page-title">Bienvenue sur le tableau de bord</h1>
+        <p class="subtitle">Vous êtes connecté en tant qu'administrateur du parc informatique.</p>
+
+        <div class="dashboard-grid-square">
+            <!-- Résumé du parc -->
+            <div class="card-square">
+                <h2>
+                    <img src="{{ url_for('static', filename='images/stats.png') }}" width="80" alt="Stats">
+                    Résumé du parc
+                </h2>
+                <ul class="stats-list">
+                    <li>
+                        <img src="{{ url_for('static', filename='images/materiel.png') }}" width="50" alt="Matériels">
+                        Total matériels : {{ stats.total_materiels }}
+                    </li>
+                    <li>
+                        <img src="{{ url_for('static', filename='images/panne.png') }}" width="50" alt="En panne">
+                        Matériels en panne : {{ stats.materiels_en_panne }}
+                        <span class="percentage">
+                            ({{ (stats.materiels_en_panne / stats.total_materiels * 100 if stats.total_materiels > 0 else 0)|round(1) }}%)
+                        </span>
+                    </li>
+                    <li>
+                        <img src="{{ url_for('static', filename='images/employee.png') }}" width="50" alt="Employés">
+                        Total employés : {{ stats.total_employes }}
+                    </li>
+                    <li>
+                        <img src="{{ url_for('static', filename='images/service.png') }}" width="50" alt="Services">
+                        Total services : {{ stats.total_services }}
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Guide rapide -->
+            <div class="card-square">
+                <h2>
+                    <img src="{{ url_for('static', filename='images/guide.png') }}" width="80" alt="Guide">
+                    Guide rapide
+                </h2>
+                <ul class="quick-actions">
+                    <li>
+                        <img src="{{ url_for('static', filename='images/materiel.png') }}" width="50" alt="Voir matériels">
+                        <a href="/materiels">Voir tous les matériels</a>
+                    </li>
+                    <li>
+                        <img src="{{ url_for('static', filename='images/add.png') }}" width="30" alt="Ajouter matériel">
+                        <a href="/materiels/ajouter">Ajouter un matériel</a>
+                    </li>
+                    <li>
+                        <img src="{{ url_for('static', filename='images/employee.png') }}" width="50" alt="Voir employés">
+                        <a href="/employes">Voir tous les employés</a>
+                    </li>
+                    <li>
+                        <img src="{{ url_for('static', filename='images/add.png') }}" width="30" alt="Ajouter employé">
+                        <a href="/employes/ajouter">Ajouter un employé</a>
+                    </li>
+                    <li>
+                        <img src="{{ url_for('static', filename='images/service.png') }}" width="50" alt="Voir services">
+                        <a href="/services">Voir tous les services</a>
+                    </li>
+                    <li>
+                        <img src="{{ url_for('static', filename='images/add.png') }}" width="30" alt="Ajouter service">
+                        <a href="/services/ajouter">Ajouter un service</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Calendrier simple -->
+            <div class="card-square">
+                <h2>
+                    <img src="{{ url_for('static', filename='images/calendar.png') }}" width="80" alt="Calendrier">
+                    Calendrier
+                </h2>
+                <div id="calendar-container"></div>
+                <div class="calendar-nav">
+                    <button onclick="generateCalendar()">Aujourd'hui</button>
+                    <div id="current-month"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

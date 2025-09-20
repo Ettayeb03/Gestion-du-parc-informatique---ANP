@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+<div class="employee-container">
+    <h2 class="page-title">👥 Liste des employés</h2>
+
+    <!-- Barre d'actions -->
+    <div class="action-bar">
+        <a href="{{ url_for('ajouter_employe') }}" class="btn btn-primary">
+            ➕ Ajouter un employé
+        </a>
+
+        <form action="{{ url_for('importer_employes') }}" method="post" enctype="multipart/form-data" class="import-form">
+            <label class="file-input-wrapper">
+                📄 Choisir un fichier
+                <input type="file" name="fichier_excel" required>
+            </label>
+            <button type="submit" class="btn btn-warning">📥 Importer Excel</button>
+        </form>
+
+        <a href="{{ url_for('exporter_employes') }}" class="btn btn-success">
+            📤 Exporter Excel
+        </a>
+    </div>
+
+    <!-- Recherche et filtres -->
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" id="live-search" class="search-input" placeholder="Rechercher un employé...">
+        </div>
+
+        <form method="get" action="{{ url_for('liste_employes') }}" class="filter-form">
+            <div class="filter-grid">
+                <div class="filter-group">
+                    <input type="text" name="matricule" class="filter-input" placeholder="Matricule"
+                           value="{{ request.args.get('matricule', '') }}">
+                </div>
+                <div class="filter-group">
+                    <input type="text" name="nom" class="filter-input" placeholder="Nom"
+                           value="{{ request.args.get('nom', '') }}">
+                </div>
+                <div class="filter-group">
+                    <input type="text" name="prenom" class="filter-input" placeholder="Prénom"
+                           value="{{ request.args.get('prenom', '') }}">
+                </div>
+                <div class="filter-group">
+                    <input type="text" name="poste" class="filter-input" placeholder="Poste"
+                           value="{{ request.args.get('poste', '') }}">
+                </div>
+                <div class="filter-group">
+                    <input type="text" name="email" class="filter-input" placeholder="Email"
+                           value="{{ request.args.get('email', '') }}">
+                </div>
+                <div class="filter-group">
+                    <select name="service_id" class="filter-select">
+                        <option value="">-- Service --</option>
+                        {% for s in services %}
+                            <option value="{{ s.id }}"
+                                    {% if request.args.get('service_id') == s.id|string %}selected{% endif %}>
+                                {{ s.nom }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-filter">🔍 Filtrer</button>
+                <a href="{{ url_for('liste_employes') }}" class="btn btn-reset">Réinitialiser</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tableau des employés -->
+    <div class="table-responsive">
+        <table class="employee-table" id="employee-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Matricule</th>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Date recrutement</th>
+                    <th>Poste</th>
+                    <th>Email</th>
+                    <th>Service</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for e in employes %}
+                <tr class="employee-row">
+                    <td>{{ e.id }}</td>
+                    <td>{{ e.matricule }}</td>
+                    <td class="searchable">{{ e.nom }}</td>
+                    <td class="searchable">{{ e.prenom }}</td>
+                    <td>{{ e.date_recrutement.strftime('%d/%m/%Y') if e.date_recrutement else '' }}</td>
+                    <td class="searchable">{{ e.poste or '' }}</td>
+                    <td>{{ e.email or '' }}</td>
+                    <td class="searchable">{{ e.service_nom if e.service_nom else 'Aucun' }}</td>                    <td class="actions">
+                        <a href="{{ url_for('modifier_employe', id=e.id) }}" class="btn btn-edit" title="Modifier">✏️</a>
+                        <a href="{{ url_for('supprimer_employe', id=e.id) }}" class="btn btn-delete"
+                           title="Supprimer" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet employé ?')">🗑️</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+:root {
+    --primary-color: #4361ee;
+    --primary-hover: #3a56d4;
+    --warning-color: #f8961e;
+    --warning-hover: #e68a1a;
+    --success-color: #4cc9f0;
+    --success-hover: #38b5db;
+    --danger-color: #f72585;
+    --danger-hover: #e5177b;
+    --text-color: #2b2d42;
+    --light-text: #8d99ae;
+    --border-color: #edf2f4;
+    --bg-color: #f8f9fa;
+    --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    --transition: all 0.3s ease;
+}
+
+.employee-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 12px;
+    box-shadow: var(--card-shadow);
+}
+
+.page-title {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    font-size: 1.8rem;
+}
+
+.action-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.import-form {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.file-input-wrapper {
+    position: relative;
+    padding: 0.5rem 1rem;
+    background-color: var(--border-color);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.file-input-wrapper input[type="file"] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.search-container {
+    margin-bottom: 2rem;
+}
+
+.search-box {
+    position: relative;
+    margin-bottom: 1rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.filter-form {
+    background-color: var(--border-color);
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.employee-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.employee-table th {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem;
+    text-align: left;
+}
+
+.employee-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-warning {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.btn-edit {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.btn-delete {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.btn-reset {
+    background-color: #6c757d;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .filter-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filtre instantané
+    const liveSearch = document.getElementById('live-search');
+    const employeeRows = document.querySelectorAll('.employee-row');
+
+    liveSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+
+        employeeRows.forEach(row => {
+            const searchableCells = row.querySelectorAll('.searchable');
+            let rowMatches = false;
+
+            searchableCells.forEach(cell => {
+                if (cell.textContent.toLowerCase().includes(searchTerm)) {
+                    rowMatches = true;
+                }
+            });
+
+            row.style.display = rowMatches ? '' : 'none';
+        });
+    });
+});
+</script>
+
+{% endblock %}

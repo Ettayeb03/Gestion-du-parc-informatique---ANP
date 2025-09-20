@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Connexion-ANP</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='images/LogoANP.png') }}">
+    <style>
+      /* Styles simples pour les messages */
+      .alert {
+          padding: 10px;
+          margin: 10px 0;
+          border-radius: 4px;
+      }
+      .alert-success {
+          background-color: #d4edda;
+          color: #155724;
+      }
+      .alert-danger {
+          background-color: #f8d7da;
+          color: #721c24;
+      }
+      .alert-warning {
+          background-color: #fff3cd;
+          color: #856404;
+      }
+    </style>
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div style="text-align: center;">
+            <img src="{{ url_for('static', filename='images/LogoANP.png') }}" alt="Logo ANP" class="logo" width="100" height="100">
+        </div>
+        <h2>Connexion</h2>
+
+        <!-- AFFICHAGE DES MESSAGES FLASH -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="flash-messages">
+              {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST">
+            <label for="username">Nom d'utilisateur</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit">Se connecter</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="table-container">
+    <h2>Gestion des utilisateurs</h2>
+
+    <div class="d-flex justify-content-between align-items-center my-3">
+        <a href="{{ url_for('ajouter_utilisateur') }}" class="btn btn-success">➕ Ajouter Admin / Employé</a>
+        <a href="{{ url_for('accueil') }}" class="btn btn-secondary">← Retour</a>
+    </div>
+
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom d'utilisateur</th>
+                <th>Rôle</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for u in utilisateurs %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.username }}</td>
+                <td>{{ {'user': 'Utilisateur', 'admin': 'Administrateur'}.get(u.role, u.role) }}</td>                <td>
+                    <a href="{{ url_for('modifier_utilisateur', id=u.id) }}" class="btn btn-edit">✏️ Modifier</a>
+                    <a href="{{ url_for('supprimer_utilisateur', id=u.id) }}" class="btn btn-delete"
+                       onclick="return confirm('Confirmer la suppression de cet utilisateur ?')">🗑️ Supprimer</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

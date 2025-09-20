@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <h2>Modifier le service ID {{ service.id }}</h2>
+    <form method="POST">
+        <label>Nom du service : <input type="text" name="nom" value="{{ service.nom }}" required></label>
+        <button type="submit" class="btn btn-primary">Modifier</button>
+    </form>
+    <a class="btn-link" href="{{ url_for('liste_services') }}">Retour à la liste</a>
+</div>
+{% endblock %}

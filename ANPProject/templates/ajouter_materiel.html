@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <div class="form-header">
+        <h2><i class="fas fa-plus-circle"></i> Ajouter un matériel</h2>
+        <a href="{{ url_for('liste_materiels') }}" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+
+    <form method="POST" class="material-form">
+        <!-- Première ligne horizontale -->
+        <div class="form-row">
+            <div class="form-group">
+                <label for="nom"><i class="fas fa-tag"></i> Nom</label>
+                <input type="text" id="nom" name="nom" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="reference"><i class="fas fa-barcode"></i> Référence</label>
+                <input type="text" id="reference" name="reference" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="numero_serie"><i class="fas fa-hashtag"></i> N° de série</label>
+                <input type="text" id="numero_serie" name="numero_serie" class="form-control">
+            </div>
+        </div>
+
+        <!-- Deuxième ligne horizontale -->
+        <div class="form-row">
+            <div class="form-group">
+                <label for="code_immobilisation"><i class="fas fa-qrcode"></i> Code immobilisation</label>
+                <input type="text" id="code_immobilisation" name="code_immobilisation" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="type"><i class="fas fa-tools"></i> Type</label>
+                <input type="text" id="type" name="type" class="form-control" required>
+            </div>
+
+            <div class="form-group">
+                <label for="date_achat"><i class="fas fa-calendar-alt"></i> Date d'achat</label>
+                <input type="date" id="date_achat" name="date_achat" class="form-control" required>
+            </div>
+        </div>
+
+        <!-- Troisième ligne horizontale -->
+        <div class="form-row">
+            <div class="form-group">
+                <label for="etat"><i class="fas fa-heartbeat"></i> État</label>
+                <select id="etat" name="etat" class="form-select" required>
+                    <option value="fonctionnel">Fonctionnel</option>
+                    <option value="en panne">En panne</option>
+                    <option value="en maintenance">En maintenance</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="remarque"><i class="fas fa-comment-alt"></i> Remarque</label>
+                <textarea id="remarque" name="remarque" class="form-control" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="employe_id"><i class="fas fa-user-tie"></i> Affecté à l'employé</label>
+                <select id="employe_id" name="employe_id" class="form-select">
+                    <option value="">-- Aucun --</option>
+                    {% for e in employes %}
+                        <option value="{{ e.id }}">{{ e.prenom }} {{ e.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="service_nom">Service</label>
+                <input type="text" class="form-control" id="service_nom" readonly>
+            </div>
+            <input type="hidden" name="service_id" id="service_id">
+            <script>
+                const employeSelect = document.getElementById("employe_id");
+                const serviceInput = document.getElementById("service_id");
+                const serviceNomField = document.getElementById("service_nom");
+
+                const employeServices = {
+                    {% for e in employes %}
+                        "{{ e.id }}": "{{ e.service_id }}",
+                    {% endfor %}
+                };
+
+                const serviceNoms = {
+                    {% for e in employes %}
+                        "{{ e.id }}": "{{ e.service_nom }}",
+                    {% endfor %}
+                };
+
+                employeSelect.addEventListener("change", function () {
+                    const selectedId = this.value;
+                    serviceInput.value = employeServices[selectedId] || "";
+                    serviceNomField.value = serviceNoms[selectedId] || "";
+                });
+            </script>
+        </div>
+
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Enregistrer
+            </button>
+            <button type="reset" class="btn btn-outline">
+                <i class="fas fa-undo"></i> Réinitialiser
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+:root {
+    --primary: #4361ee;
+    --light-gray: #f8f9fa;
+    --border-color: #dee2e6;
+    --dark: #212529;
+    --border-radius: 0.375rem;
+    --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    --transition: all 0.3s ease;
+}
+
+/* Conteneur principal */
+.form-container {
+    background-color: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 2rem auto;
+    width: 95%;
+}
+
+.form-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--light-gray);
+}
+
+.form-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: var(--dark);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Lignes de formulaire */
+.form-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+}
+
+.form-group {
+    flex: 1;
+    min-width: 0; /* Empêche le débordement */
+}
+
+/* Éléments de formulaire */
+.form-control, .form-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.form-control:focus, .form-select:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+}
+
+.form-select {
+    background-color: white;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px 12px;
+}
+
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Boutons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 500;
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+    border: 1px solid transparent;
+    font-size: 1rem;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.btn-primary:hover {
+    background-color: #3a56d4;
+    border-color: #3a56d4;
+}
+
+.btn-outline {
+    background-color: transparent;
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.btn-outline:hover {
+    background-color: rgba(67, 97, 238, 0.1);
+    border-color: var(--primary);
+}
+
+/* Actions du formulaire */
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+</style>
+{% endblock %}

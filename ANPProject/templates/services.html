@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="table-container">
+    <h2>Liste des services</h2>
+    <a href="{{ url_for('ajouter_service') }}" class="btn btn-primary">Ajouter un service</a>
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for s in services %}
+            <tr>
+                <td>{{ s.id }}</td>
+                <td>{{ s.nom }}</td>
+                <td>
+                    <a href="{{ url_for('modifier_service', id=s.id) }}" class="btn-edit">Modifier</a>
+                    <a href="{{ url_for('supprimer_service', id=s.id) }}" class="btn-delete" onclick="return confirm('Supprimer ce service ?')">Supprimer</a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

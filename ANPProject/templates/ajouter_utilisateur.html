@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="form-container">
+    <h2>Ajouter un utilisateur</h2>
+    <form method="POST">
+        <label>Nom d'utilisateur:
+            <input type="text" name="username" class="form-control" required>
+        </label>
+        <label>Mot de passe:
+            <input type="password" name="password" class="form-control" required>
+        </label>
+        <label>Rôle:
+            <select name="role" class="form-select" required>
+                <option value="admin">Administrateur</option>
+                <option value="user">Employé</option>
+            </select>
+        </label>
+        <label>Employé lié (optionnel):
+            <select name="employe_id" class="form-select">
+                <option value="">-- Aucun --</option>
+                {% for emp in employes %}
+                    <option value="{{ emp.id }}">{{ emp.nom }} {{ emp.prenom }}</option>
+                {% endfor %}
+            </select>
+        </label>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+        <a href="{{ url_for('gestion_utilisateurs') }}" class="btn btn-link">← Retour</a>
+    </form>
+</div>
+{% endblock %}

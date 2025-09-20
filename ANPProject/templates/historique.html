@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Historique des actions</h2>
+
+<table class="styled-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Utilisateur</th>
+            <th>Action</th>
+            <th>Cible</th>
+            <th>ID Cible</th>
+            <th>Description</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% if historique and historique|length > 0 %}
+        {% for h in historique %}
+        <tr>
+            <td>{{ h.id }}</td>
+            <td>{{ h.utilisateur }}</td>
+            <td>{{ h.action }}</td>
+            <td>{{ h.cible }}</td>
+            <td>{{ h.cible_id }}</td>
+            <td>{{ h.description }}</td>
+            <td>{{ h.date_action }}</td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr><td colspan="7" style="text-align:center;">Aucun historique trouvé.</td></tr>
+    {% endif %}
+    </tbody>
+</table>
+{% endblock %}
